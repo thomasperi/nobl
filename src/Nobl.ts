@@ -37,7 +37,7 @@ export class Nobl {
 	#inside = false;
 	#interrupted = false;
 	#operation?: Operation;
-	#doing = false;
+	#running = false;
 	#paused = false;
 	#sleeping = false;
 	#waitPromise?: Promise<void>;
@@ -72,8 +72,8 @@ export class Nobl {
 		}
 	}
 
-	get doing(): boolean {
-		return this.#doing;
+	get running(): boolean {
+		return this.#running;
 	}
 
 	get paused(): boolean {
@@ -93,9 +93,9 @@ export class Nobl {
 		this.#idleDuration = this.#duration - this.#workDuration;
 	}
 
-	do(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
-		this.#onlyIfNotRunning('do');
-		this.#doing = true;
+	start(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
+		this.#onlyIfNotRunning('start');
+		this.#running = true;
 		return new Promise((resolve, reject) => {
 			const progressPromise = this.#dispatchEvent('progress');
 			this.#operation = {
@@ -109,7 +109,7 @@ export class Nobl {
 		})
 			.then((a: any) => a)
 			.finally(() => {
-				this.#doing = false;
+				this.#running = false;
 			});
 	}
 
@@ -165,6 +165,7 @@ export class Nobl {
 		}
 	}
 
+	// to-do: test interrupt
 	interrupt() {
 		this.#onlyFromInside('interrupt');
 		// this.#onlyIfRunning('interrupt'); <-- if it's not running, we're not inside
