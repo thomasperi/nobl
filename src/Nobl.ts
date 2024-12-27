@@ -146,14 +146,16 @@ export class Nobl {
 
 	pause() {
 		this.#onlyFromOutside('pause');
-		// this.#onlyIfNotPaused('pause');
-		this.#paused = true;
-		this.#dispatchEvent('pause');
+		// this.#onlyIfNotPaused('pause'); <-- not an error, just don't pause if paused
+		if (!this.#paused) {
+			this.#paused = true;
+			this.#dispatchEvent('pause');
+		}
 	}
 
 	resume() {
 		this.#onlyFromOutside('resume');
-		// this.#onlyIfPaused('resume');
+		// this.#onlyIfPaused('resume'); <-- not an error, just don't resume if not paused
 		if (this.#paused) {
 			this.#paused = false;
 			if (this.#operation) {
@@ -309,21 +311,21 @@ export class Nobl {
 		}
 	}
 
-	#onlyIfNotPaused(method: string) {
-		if (this.#paused) {
-			throw new Error(
-				`${method} cannot be called when the operation is paused.`
-			);
-		}
-	}
+	// #onlyIfNotPaused(method: string) {
+	// 	if (this.#paused) {
+	// 		throw new Error(
+	// 			`${method} cannot be called when the operation is paused.`
+	// 		);
+	// 	}
+	// }
 
-	#onlyIfNotWaiting(method: string) {
-		if (this.#waitPromise) {
-			throw new Error(
-				`${method} cannot be called while waiting for an existing promise. Did you forget a yield?`
-			);
-		}
-	}
+	// #onlyIfNotWaiting(method: string) {
+	// 	if (this.#waitPromise) {
+	// 		throw new Error(
+	// 			`${method} cannot be called while waiting for an existing promise. Did you forget a yield?`
+	// 		);
+	// 	}
+	// }
 
 	#onlyFromInside(method: string) {
 		if (!this.#inside) {
