@@ -26,6 +26,8 @@ async function baseBuild() {
     'rollup.config.ts',
     '--configPlugin',
     'typescript',
+    '--environment',
+    'BUILD:base'
   ])
 }
 
@@ -58,7 +60,7 @@ async function typesBuild() {
 
 async function removeArtifacts() {
   const files = await (await readdir(`${rootDir}/dist`))
-    .filter((file) => file.endsWith('.d.ts') && !file.startsWith('index.'))
+    .filter((file) => file.endsWith('.d.ts') && !file.startsWith('Nobl.'))
     .map((file) => `${rootDir}/dist/${file}`)
   await execa('rm', files)
 }
