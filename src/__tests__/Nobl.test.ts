@@ -11,7 +11,7 @@ import assert from 'assert';
 // - Too big and the tests run too slow
 // - Too small and the tests have false failures because they get out of sync internally
 const duration = 20; // The duration option to send to each Nobl
-const factor = 10; // How many durations to wait between each sampling "frame"
+const factor = 2; // How many durations to wait between each sampling "frame"
 
 // Calculate how long from the start of the test to wait before performing a given action.
 const frame = (n: number): number => n * duration * factor;
