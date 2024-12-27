@@ -1,4 +1,4 @@
-/*global window*/
-export * from './Nobl';
-window.Nobl = Nobl;
-window.NoblCancelled = NoblCancelled;
+import { Nobl, NoblCancelled } from './Nobl';
+
+// Export all to the global window object
+Object.assign(window, { Nobl, NoblCancelled });
