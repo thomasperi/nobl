@@ -1,4 +1,4 @@
 /*global window*/
-export * from './nobl';
+export * from './Nobl';
 window.Nobl = Nobl;
 window.NoblCancelled = NoblCancelled;
