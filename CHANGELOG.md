@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `await` to sample code in README to indicate that `.start` returns a promise
 
+### Fixed
+
+- Typo in README
+
 
 ## [1.0.0-alpha.4] - 2024-12-28
 
