@@ -11,7 +11,7 @@ import { Nobl } from 'nobl';
 let nobl = new Nobl();
 nobl.start(function* () {
   for (let i = 1; i <= 1e10; i++) {
-    if (i % 1e7 === i) {
+    if (i % 1e7 === 0) {
       console.log(i);
     }
     yield;
