@@ -1,7 +1,6 @@
 {
   "name": "node",
-  "private": true,
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.0",
   "type": "module",
   "author": "Thomas Peri <hello@thomasperi.net>",
   "license": "MIT",
