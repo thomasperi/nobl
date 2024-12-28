@@ -19,3 +19,6 @@ await nobl.start(function* () {
 
 ## Caveat
 Nobl is experimental and hasn't seen much real-world use. You probably shouldn't rely on it for mission-critical applications.
+
+## License
+MIT
