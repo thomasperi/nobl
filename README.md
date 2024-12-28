@@ -8,14 +8,15 @@ Pass a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScr
 
 ```javascript
 import { Nobl } from 'nobl';
-const nobl = new Nobl();
-await nobl.start(function* () {
-  while (yourLongRunningLoopCondition()) {
-    aSmallPartOfYourLongOperation();
+let nobl = new Nobl();
+nobl.start(function* () {
+  for (let i = 1; i <= 1e10; i++) {
+    if (i % 1e7 === i) {
+      console.log(i);
+    }
     yield;
   }
-});
-```
+});```
 
 ## Caveat
 Nobl is experimental and hasn't seen much real-world use. You probably shouldn't rely on it for mission-critical applications.
