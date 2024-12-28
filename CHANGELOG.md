@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.0.0-alpha.4] - 2024-12-28
+
 ### Added
 
 - Some silly terser optimizations
@@ -52,7 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First publish
 
 
-[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.3...HEAD
+[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.4...HEAD
+[1.0.0-alpha.4]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.3...v1.0.0-alpha.4
 [1.0.0-alpha.3]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.2...v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.1...v1.0.0-alpha.2
 [1.0.0-alpha.1]: https://github.com/thomasperi/nobl/releases/tag/v1.0.0-alpha.1
