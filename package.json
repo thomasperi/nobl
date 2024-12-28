@@ -1,6 +1,6 @@
 {
   "name": "nobl",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "type": "module",
   "author": "Thomas Peri <hello@thomasperi.net>",
   "repository": "github:thomasperi/nobl",
@@ -16,8 +16,8 @@
     "./package.json": "./package.json"
   },
   "files": [
-  	"dist/Nobl.min.mjs",
-  	"dist/Nobl.d.ts"
+    "dist/Nobl.min.mjs",
+    "dist/Nobl.d.ts"
   ],
   "scripts": {
     "build": "node build/pack.js && node build/terser.js",
