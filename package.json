@@ -3,6 +3,7 @@
   "version": "1.0.0-alpha.2",
   "type": "module",
   "author": "Thomas Peri <hello@thomasperi.net>",
+  "repository": "github:thomasperi/nobl",
   "license": "MIT",
   "main": "dist/Nobl.min.mjs",
   "module": "dist/Nobl.min.mjs",
