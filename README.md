@@ -9,7 +9,7 @@ Pass a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScr
 ```javascript
 import { Nobl } from 'nobl';
 let nobl = new Nobl();
-nobl.start(function* () {
+await nobl.start(function* () {
   for (let i = 1; i <= 1e10; i++) {
     if (i % 1e7 === 0) {
       console.log(i);
