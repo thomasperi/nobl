@@ -4,7 +4,11 @@
 
 Nobl lets you write long-running operations in a way that runs asynchronously instead of blocking the main thread, by automatically ceding control back to the browser frequently throughout the operation.
 
-Pass a generator function to `nobl.start`, and it returns a Promise that resolves when the function returns. Every `yield` statement encountered in the generator function serves as a possible breakpoint for the next timeout.
+## Experimental
+Nobl is experimental and hasn't seen much real-world use, so it's best if you don't rely on it for mission-critical applications.
+
+## Usage
+Pass a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*) to `nobl.start`, and it returns a Promise that resolves when the function returns. Every `yield` statement encountered in the generator function serves as a possible breakpoint for the next timeout.
 
 ```javascript
 import * from 'nobl';
