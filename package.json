@@ -1,22 +1,21 @@
 {
-  "name": "nobl",
+  "name": "node",
   "private": true,
   "version": "1.0.0-alpha.1",
   "type": "module",
   "author": "Thomas Peri <hello@thomasperi.net>",
   "license": "MIT",
-  "main": "dist/Nobl.min.mjs",
-  "module": "dist/Nobl.min.mjs",
-  "types": "dist/Nobl.d.ts",
+  "main": "dist/index.min.mjs",
+  "module": "dist/index.min.mjs",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/Nobl.d.ts",
-      "import": "./dist/Nobl.mjs"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
     },
     "./package.json": "./package.json"
   },
   "scripts": {
-    "dev": "vite",
     "build": "node build/pack.js && node build/terser.js",
     "test": "vitest"
   },
