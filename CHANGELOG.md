@@ -8,10 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Some silly terser optimizations
+
+### Changed
+
+- Standardized the error messages
+
+### Removed
+
+- Unnecessary check for unreachable state
+
 ### Fixed
 
-- fixed bug in sample code in README
-- solved 'No "exports" main defined' problem by adding in "exports" -> "." -> "default" option in package.json
+- Fixed bug in sample code in README
+- Solved 'No "exports" main defined' problem by adding in "exports" -> "." -> "default" option in package.json
+- Fixed a discrepancy with internal duration values
 
 
 ## [1.0.0-alpha.3] - 2024-12-27

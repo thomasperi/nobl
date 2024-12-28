@@ -4,12 +4,6 @@ interface Operation {
 	reject: Function;
 }
 
-export class NoblCancelled extends Error {
-	constructor() {
-		super('operation cancelled');
-	}
-}
-
 export interface NoblEvent {
 	type: NoblEventType;
 	nobl: Nobl;
@@ -27,12 +21,21 @@ export type NoblEventType =
 	| 'wait'
 	| 'duration'
 	| 'throttle';
+	
+const _Error = Error;
+const _Promise = Promise;
 
-export class Nobl {
+const onlyWhen = (method, when) => {
+	throw new _Error(method + ' can only be called ' + when);
+};
+
+const NoblCancelled = class extends _Error {};
+
+const Nobl = class {
 	#duration = 20;
-	#workDuration = 5;
-	#idleDuration = 5;
 	#throttle = 0.5;
+	#workDuration = 0;
+	#idleDuration = 0;
 
 	#inside = false;
 	#interrupted = false;
@@ -42,6 +45,10 @@ export class Nobl {
 	#sleeping = false;
 	#waitPromise?: Promise<void>;
 	#listeners: Record<string, Set<NoblListener>> = {};
+	
+	constructor() {
+		this.#updateDurations();
+	}
 
 	// to-do: test duration setter and getter
 	get duration(): number {
@@ -96,7 +103,7 @@ export class Nobl {
 	start(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
 		this.#onlyIfNotRunning('start');
 		this.#running = true;
-		return new Promise((resolve, reject) => {
+		return new _Promise((resolve, reject) => {
 			const progressPromise = this.#dispatchEvent('progress');
 			this.#operation = {
 				resolve,
@@ -180,7 +187,7 @@ export class Nobl {
 		this.#sleeping = true;
 		this.#dispatchEvent('sleep');
 		this.wait(
-			new Promise<void>(resolve =>
+			new _Promise<void>(resolve =>
 				setTimeout(() => {
 					this.#sleeping = false;
 					resolve();
@@ -212,7 +219,7 @@ export class Nobl {
 
 	#dispatchEvent(type: NoblEventType): Promise<void> {
 		if (type in this.#listeners) {
-			return Promise.all(
+			return _Promise.all(
 				[...this.#listeners[type]].map(listener =>
 					listener({
 						type,
@@ -221,16 +228,16 @@ export class Nobl {
 				)
 			).then(() => {});
 		}
-		return Promise.resolve();
+		return _Promise.resolve();
 	}
 
 	// Do a single iteration
 	#step() {
-		if (!this.#operation) {
-			// This error should never be thrown,
-			// because #step should never be called when #operation is undefined.
-			throw 'weird';
-		}
+		// if (!this.#operation) {
+		//   // This error should never be thrown,
+		//   // because #step should never be called when #operation is undefined.
+		//   throw 'weird';
+		// }
 		try {
 			this.#inside = true;
 			const item = this.#operation.iterator.next();
@@ -290,53 +297,33 @@ export class Nobl {
 
 	#onlyIfRunning(method: string) {
 		if (!this.#operation) {
-			throw new Error(
-				`${method} cannot be called when there is no operation running.`
-			);
+			onlyWhen(method, 'when running');
 		}
 	}
 
 	#onlyIfNotRunning(method: string) {
 		if (this.#operation) {
-			throw new Error(
-				`${method} cannot be called when an operation is running.`
-			);
+			onlyWhen(method, 'when not running');
 		}
 	}
 
 	#onlyIfPaused(method: string) {
 		if (!this.#paused) {
-			throw new Error(
-				`${method} can only be called when the operation is paused.`
-			);
+			onlyWhen(method, 'when paused');
 		}
 	}
 
-	// #onlyIfNotPaused(method: string) {
-	// 	if (this.#paused) {
-	// 		throw new Error(
-	// 			`${method} cannot be called when the operation is paused.`
-	// 		);
-	// 	}
-	// }
-
-	// #onlyIfNotWaiting(method: string) {
-	// 	if (this.#waitPromise) {
-	// 		throw new Error(
-	// 			`${method} cannot be called while waiting for an existing promise. Did you forget a yield?`
-	// 		);
-	// 	}
-	// }
-
 	#onlyFromInside(method: string) {
 		if (!this.#inside) {
-			throw new Error(`${method} can only be called from inside a generator`);
+			onlyWhen(method, 'inside the operation');
 		}
 	}
 
 	#onlyFromOutside(method: string) {
 		if (this.#inside) {
-			throw new Error(`${method} cannot be called from inside a generator`);
+			onlyWhen(method, 'outside the operation');
 		}
 	}
-}
+};
+
+export {Nobl, NoblCancelled};
