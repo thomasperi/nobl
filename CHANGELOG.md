@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- bug in sample code in README
+- fixed bug in sample code in README
+- solved 'No "exports" main defined' problem by adding in "exports" -> "." -> "default" option in package.json
 
 
 ## [1.0.0-alpha.3] - 2024-12-27

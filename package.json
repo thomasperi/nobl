@@ -11,7 +11,8 @@
   "exports": {
     ".": {
       "types": "./dist/Nobl.d.ts",
-      "import": "./dist/Nobl.min.mjs"
+      "import": "./dist/Nobl.min.mjs",
+      "default": "./dist/Nobl.min.mjs"
     },
     "./package.json": "./package.json"
   },
