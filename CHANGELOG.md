@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.0.0-alpha.3] - 2024-12-27
+
 ### Added
 
 - Changelog
@@ -31,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First publish
 
 
-[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.2...HEAD
+[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.3...HEAD
+[1.0.0-alpha.3]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.2...v1.0.0-alpha.3
 [1.0.0-alpha.2]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.1...v1.0.0-alpha.2
 [1.0.0-alpha.1]: https://github.com/thomasperi/nobl/releases/tag/v1.0.0-alpha.1
