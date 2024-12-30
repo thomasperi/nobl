@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [1.0.0-alpha.6] - 2024-12-29
+
+### Fixed
+
+- Forgot to build the last release!
+
+
 ## [1.0.0-alpha.5] - 2024-12-29
 
 ### Changed
@@ -63,7 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First publish
 
 
-[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.5...HEAD
+[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.6...HEAD
+[1.0.0-alpha.6]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.5...v1.0.0-alpha.6
 [1.0.0-alpha.5]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.4...v1.0.0-alpha.5
 [1.0.0-alpha.4]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.3...v1.0.0-alpha.4
 [1.0.0-alpha.3]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.2...v1.0.0-alpha.3
