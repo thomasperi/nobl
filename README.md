@@ -24,7 +24,7 @@ await nobl.run(function* () {
 
 ## External Functions
 
-The `run` method also accepts the iterator produced by calling a generator function, allowing you to call existing generator functions with arguments (rather than having to create a new generator function to call it from).
+The `run` method also accepts the iterator produced by calling a generator function, allowing you to call existing generator functions with arguments.
 
 ```javascript
 function* longOperation(a, b) {
