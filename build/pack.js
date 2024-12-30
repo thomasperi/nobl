@@ -23,9 +23,6 @@ async function baseBuild() {
   await execa('npx', [
     'rollup',
     '-c',
-    'rollup.config.ts',
-    '--configPlugin',
-    'typescript',
     '--environment',
     'BUILD:base'
   ])
@@ -36,9 +33,6 @@ async function iifeBuild() {
   await execa('npx', [
     'rollup',
     '-c',
-    'rollup.config.ts',
-    '--configPlugin',
-    'typescript',
     '--environment',
     'BUILD:iife'
   ])
@@ -50,9 +44,6 @@ async function typesBuild() {
   await execa('npx', [
     'rollup',
     '-c',
-    'rollup.config.ts',
-    '--configPlugin',
-    'typescript',
     '--environment',
     'BUILD:types',
   ])

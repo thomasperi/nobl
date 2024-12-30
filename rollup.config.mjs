@@ -1,14 +1,14 @@
-import { defineConfig, InputOptions, OutputOptions } from 'rollup';
+import { defineConfig } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import dts from 'rollup-plugin-dts';
 
-const plugins: InputOptions['plugins'] = [];
-const output: OutputOptions = {};
+const plugins = [];
+const output = {};
 let input;
 
 const tsPlugin = typescript({
 	sourceMap: false,
-	exclude: ['rollup.config.ts', 'src/__tests__/**'],
+	exclude: ['src/__tests__/**'],
 });
 
 switch (process.env.BUILD) {
