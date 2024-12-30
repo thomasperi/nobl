@@ -22,7 +22,8 @@
   ],
   "scripts": {
     "build": "node build/pack.js && node build/terser.js",
-    "test": "vitest"
+    "test": "vitest",
+    "watch": "tsc --noEmit --watch"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

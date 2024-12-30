@@ -1,9 +1,3 @@
-interface Operation {
-	iterator: Iterator;
-	resolve: () => void;
-	reject: () => void;
-}
-
 export interface NoblEvent {
 	type: NoblEventType;
 	nobl: Nobl;
@@ -19,40 +13,52 @@ export type NoblEventType =
 	| 'interrupt'
 	| 'sleep'
 	| 'wait'
-	| 'duration'
-	| 'throttle';
+	| 'duration';
+//	| 'throttle';
+
+
+// Types for a Promise's `resolve` and `reject` function
+type ResolveFunc<T> = (value: T) => void;
+type RejectFunc = (value: any) => void;
+type NoblType<T> = Iterator<void, T>;
+
+class NoblCancelledError extends Error {};
+
+class NoblOperation<T> {
+	iterator: NoblType<T>;
+	resolve: ResolveFunc<T>;
+	reject: RejectFunc;
 	
-const _Error = Error;
-const _Promise = Promise;
-
-const onlyWhen = (method, when) => {
-	throw new _Error(method + ' can only be called ' + when);
-};
-
-const NoblCancelled = class extends _Error {};
-
-const NoblOperation = class {
-	// to-do
+	constructor(
+		iterator: NoblType<T>,
+		resolve: ResolveFunc<T>,
+		reject: RejectFunc,
+	) {
+		this.iterator = iterator;
+		this.resolve = resolve;
+		this.reject = reject;
+	}
 }
 
-const Nobl = class {
+class Nobl {
 	#duration = 20;
-	#throttle = 0.5;
-	#workDuration = 0;
-	#idleDuration = 0;
+	// #throttle = 0.5;
+	// #workDuration = 10;
+	// #idleDuration = 10;
 
 	#inside = false;
 	#interrupted = false;
-	#operation?: Operation;
 	#running = false;
 	#paused = false;
 	#sleeping = false;
+
+	#operation?: NoblOperation<any>;
 	#waitPromise?: Promise<void>;
 	#listeners: Record<string, Set<NoblListener>> = {};
 	
-	constructor() {
-		this.#updateDurations();
-	}
+	// constructor() {
+	// 	this.#updateDurations();
+	// }
 
 	// to-do: test duration setter and getter
 	get duration(): number {
@@ -65,23 +71,23 @@ const Nobl = class {
 		}
 		if (this.#duration !== n) {
 			this.#duration = n;
-			this.#updateDurations();
+			// this.#updateDurations();
 			this.#dispatchEvent('duration');
 		}
 	}
 
-	// to-do: test throttle
-	get throttle(): number {
-		return this.#throttle;
-	}
-	set throttle(n: number) {
-		n = Math.max(0, Math.min(n, 1));
-		if (this.#throttle !== n) {
-			this.#throttle = n;
-			this.#updateDurations();
-			this.#dispatchEvent('throttle');
-		}
-	}
+	// to-do: consider adding throttling back in
+	// get throttle(): number {
+	// 	return this.#throttle;
+	// }
+	// set throttle(n: number) {
+	// 	n = Math.max(0, Math.min(n, 1));
+	// 	if (this.#throttle !== n) {
+	// 		this.#throttle = n;
+	// 		this.#updateDurations();
+	// 		this.#dispatchEvent('throttle');
+	// 	}
+	// }
 
 	get running(): boolean {
 		return this.#running;
@@ -99,25 +105,24 @@ const Nobl = class {
 		return this.#sleeping;
 	}
 
-	#updateDurations() {
-		this.#workDuration = this.#duration * this.#throttle;
-		this.#idleDuration = this.#duration - this.#workDuration;
-	}
+	// #updateDurations() {
+	// 	if (this.#operation) {
+	// 		this.#workDuration = this.#duration * this.#throttle;
+	// 		this.#idleDuration = this.#duration - this.#workDuration;
+	// 	}
+	// }
 
-	run(arg: (Iterator<void, T>) | (() => Iterator<void, T>)): Promise<T> {
+	run<T>(arg: (NoblType<T>) | (() => NoblType<T>)): Promise<T> {
 		this.#onlyIfNotRunning('run');
 		this.#running = true;
-		let iterator = arg;
-		if (arg instanceof Function) {
-			iterator = arg();
-		}
-		return new _Promise((resolve, reject) => {
+		const iterator: NoblType<T> = (typeof arg === 'function') ? arg() : arg;
+		return new Promise<T>((resolve, reject) => {
 			this.#dispatchEvent('progress');
-			this.#operation = {
-				resolve,
-				reject,
+			this.#operation = new NoblOperation<T>(
 				iterator,
-			};
+				resolve,
+				reject
+			);
 			this.#clump();
 		}).finally(() => {
 			this.#running = false;
@@ -131,7 +136,7 @@ const Nobl = class {
 		if (operation) {
 			this.#dispatchEvent('cancel');
 			// Canceling has to reject, because it prevents the function from returning.
-			operation.reject(new NoblCancelled());
+			operation.reject(new NoblCancelledError('operation cancelled'));
 		}
 	}
 
@@ -149,7 +154,7 @@ const Nobl = class {
 		this.#onlyIfRunning('next');
 		this.#onlyIfPaused('next');
 		if (this.#waitPromise) {
-			throw new _Error(`can't next() while waiting`);
+			throw new Error(`can't next() while waiting`);
 		}
 		this.#step();
 		this.#dispatchEvent('progress');
@@ -191,7 +196,7 @@ const Nobl = class {
 		this.#sleeping = true;
 		this.#dispatchEvent('sleep');
 		this.wait(
-			new _Promise<void>(resolve =>
+			new Promise<void>(resolve =>
 				setTimeout(() => {
 					this.#sleeping = false;
 					resolve();
@@ -239,30 +244,32 @@ const Nobl = class {
 		//   // because #step should never be called when #operation is undefined.
 		//   throw 'weird';
 		// }
-		try {
-			this.#inside = true;
-			const item = this.#operation.iterator.next();
-			if (item.done) {
-				const {resolve} = this.#operation;
-				this.#operation = undefined;
-				resolve(item.value);
+		if (this.#operation) {
+			try {
+				this.#inside = true;
+				const item = this.#operation.iterator.next();
+				if (item.done) {
+					const {resolve} = this.#operation;
+					this.#operation = undefined;
+					resolve(item.value);
+				}
+			} catch (e) {
+				if (!this.#operation) {
+					throw e;
+				}
+				const {reject} = this.#operation;
+				// 			this.#operation = undefined;
+				this.#reset();
+				reject(e);
+			} finally {
+				this.#inside = false;
 			}
-		} catch (e) {
-			if (!this.#operation) {
-				throw e;
-			}
-			const {reject} = this.#operation;
-			// 			this.#operation = undefined;
-			this.#reset();
-			reject(e);
-		} finally {
-			this.#inside = false;
 		}
 	}
 
 	#clump() {
 		setTimeout(() => {
-			const end = performance.now() + this.#workDuration;
+			const end = performance.now() + this.#duration; // this.#workDuration;
 			while (
 				!this.#interrupted &&
 				!this.#paused &&
@@ -294,7 +301,7 @@ const Nobl = class {
 				this.#clump(); // The timeout happens at the beginning of the clump now
 			}
 
-		}, this.#idleDuration);
+		}, 0 /* this.#idleDuration */);
 	}
 
 	#onlyIfRunning(method: string) {
@@ -326,6 +333,10 @@ const Nobl = class {
 			onlyWhen(method, 'outside the operation');
 		}
 	}
+}
+
+const onlyWhen = (method: string, when: string) => {
+	throw new Error(method + ' can only be called ' + when);
 };
 
-export {Nobl, NoblCancelled};
+export {Nobl, NoblCancelledError, NoblType};

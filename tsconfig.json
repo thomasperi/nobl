@@ -4,7 +4,8 @@
   "ts-node": { "esm": true, "experimentalSpecifierResolution": "node" },
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["esnext"],
+    // dom is for iife script
+    "lib": ["esnext", "dom"],
     "target": "esnext",
     "importHelpers": true,
     // output .d.ts declaration files for consumers

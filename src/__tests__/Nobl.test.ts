@@ -1,5 +1,5 @@
 import { test } from 'vitest';
-import { Nobl, NoblCancelled } from '../Nobl';
+import { Nobl, NoblCancelledError, NoblType } from '../Nobl';
 import assert from 'assert';
 
 
@@ -408,7 +408,7 @@ test('cancel', async () => {
 		});
 		after = true;
 	} catch (e) {
-		if (e instanceof NoblCancelled) {
+		if (e instanceof NoblCancelledError) {
 			cancelled = true;
 		} else {
 			throw e;
@@ -455,7 +455,7 @@ test('progress with pause and next', () => {
 });
 
 test('pass iterator instead of gen fn', async () => {
-	function* preGauss(n: number): number {
+	function* preGauss(n: number): NoblType<number> {
 		let sum = 0;
 		for (let i = 1; i <= n; i++) {
 			sum += i;
@@ -463,29 +463,29 @@ test('pass iterator instead of gen fn', async () => {
 		}
 		return sum;
 	}
-	function gauss (n: number) {
+	function gauss (n: number): number {
 		return n * (n + 1) / 2;
 	}
 	
 	const nobl = new Nobl();
 
-	let number;
-	let result;
-	let expected;
+	let count: number;
+	let result: number;
+	let expected: number;
 	
-	number = 10;
-	result = await nobl.run(preGauss(number));
-	expected = gauss(number);
+	count = 10;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
 	assert.equal(result, expected);
 
-	number = 1000;
-	result = await nobl.run(preGauss(number));
-	expected = gauss(number);
+	count = 1000;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
 	assert.equal(result, expected);
 
-	number = 1000000;
-	result = await nobl.run(preGauss(number));
-	expected = gauss(number);
+	count = 1000000;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
 	assert.equal(result, expected);
 });
 
