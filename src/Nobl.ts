@@ -228,12 +228,9 @@ class Nobl {
 
 	#dispatchEvent(type: NoblEventType) {
 		if (type in this.#listeners) {
-			[...this.#listeners[type]].forEach(listener =>
-				listener({
-					type,
-					nobl: this,
-				})
-			);
+			for (let listener of this.#listeners[type]) {
+				listener({ type, nobl: this });
+			}
 		}
 	}
 
