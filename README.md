@@ -14,9 +14,9 @@ let nobl = new Nobl();
 
 await nobl.run(function* () {
   for (let i = 0; i <= hugeNumber; i++) {
-  	if (someCondition(i)) {
-			smallPieceOfTheOperation(i);
-		}
+    if (someCondition(i)) {
+      smallPieceOfTheOperation(i);
+    }
     yield; // inside the loop, outside the `if` block
   }
 });
