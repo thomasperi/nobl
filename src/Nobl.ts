@@ -114,11 +114,9 @@ const Nobl = class {
 			progressPromise.then(() => {
 				this.#clump();
 			});
-		})
-			.then((a: any) => a)
-			.finally(() => {
-				this.#running = false;
-			});
+		}).finally(() => {
+			this.#running = false;
+		});
 	}
 
 	cancel() {
