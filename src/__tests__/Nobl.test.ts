@@ -488,8 +488,6 @@ test('pass iterator instead of gen fn', async () => {
 	result = await nobl.run(preGauss(number));
 	expected = gauss(number);
 	assert.equal(result, expected);
-	
-	console.log({expected});
 });
 
 // to-do:
