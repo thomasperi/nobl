@@ -1,7 +1,7 @@
 interface Operation {
-	iterator: Iterator<any>;
-	resolve: Function;
-	reject: Function;
+	iterator: Iterator;
+	resolve: () => void;
+	reject: () => void;
 }
 
 export interface NoblEvent {
@@ -9,7 +9,7 @@ export interface NoblEvent {
 	nobl: Nobl;
 }
 
-export type NoblListener = (event: NoblEvent) => Promise<void> | void;
+export type NoblListener = (event: NoblEvent) => void;
 
 export type NoblEventType =
 	| 'cancel'
@@ -30,6 +30,10 @@ const onlyWhen = (method, when) => {
 };
 
 const NoblCancelled = class extends _Error {};
+
+const NoblOperation = class {
+	// to-do
+}
 
 const Nobl = class {
 	#duration = 20;
@@ -100,20 +104,21 @@ const Nobl = class {
 		this.#idleDuration = this.#duration - this.#workDuration;
 	}
 
-	run(arg: (Iterator<any>) | (() => Iterator<any>)): Promise<void> {
+	run(arg: (Iterator<void, T>) | (() => Iterator<void, T>)): Promise<T> {
 		this.#onlyIfNotRunning('run');
 		this.#running = true;
-		let iterator: Iterator<any> = typeof arg === 'function' ? arg() : arg;
+		let iterator = arg;
+		if (arg instanceof Function) {
+			iterator = arg();
+		}
 		return new _Promise((resolve, reject) => {
-			const progressPromise = this.#dispatchEvent('progress');
+			this.#dispatchEvent('progress');
 			this.#operation = {
 				resolve,
 				reject,
 				iterator,
 			};
-			progressPromise.then(() => {
-				this.#clump();
-			});
+			this.#clump();
 		}).finally(() => {
 			this.#running = false;
 		});
@@ -139,15 +144,15 @@ const Nobl = class {
 		this.#waitPromise = undefined;
 	}
 
-	next(): Promise<void> {
+	next() {
 		this.#onlyFromOutside('next');
 		this.#onlyIfRunning('next');
 		this.#onlyIfPaused('next');
 		if (this.#waitPromise) {
-			return this.#waitPromise;
+			throw new _Error(`can't next() while waiting`);
 		}
 		this.#step();
-		return this.#dispatchEvent('progress');
+		this.#dispatchEvent('progress');
 	}
 
 	pause() {
@@ -216,18 +221,15 @@ const Nobl = class {
 		}
 	}
 
-	#dispatchEvent(type: NoblEventType): Promise<void> {
+	#dispatchEvent(type: NoblEventType) {
 		if (type in this.#listeners) {
-			return _Promise.all(
-				[...this.#listeners[type]].map(listener =>
-					listener({
-						type,
-						nobl: this,
-					})
-				)
-			).then(() => {});
+			[...this.#listeners[type]].forEach(listener =>
+				listener({
+					type,
+					nobl: this,
+				})
+			);
 		}
-		return _Promise.resolve();
 	}
 
 	// Do a single iteration
@@ -271,26 +273,27 @@ const Nobl = class {
 				this.#step();
 			}
 
-			this.#dispatchEvent('progress').then(() => {
-				this.#interrupted = false;
+			this.#dispatchEvent('progress');
 
-				if (this.#waitPromise) {
-					const promise = this.#waitPromise;
-					promise.then(() => {
-						// Only do the next clump if the operation wasn't cancelled
-						// while waiting for the promise.
-						if (this.#waitPromise === promise) {
-							this.#waitPromise = undefined;
-							this.#clump();
-						}
-					});
-					return;
-				}
+			this.#interrupted = false;
 
-				if (this.#operation && !this.#paused) {
-					this.#clump(); // The timeout happens at the beginning of the clump now
-				}
-			});
+			if (this.#waitPromise) {
+				const promise = this.#waitPromise;
+				promise.then(() => {
+					// Only do the next clump if the operation wasn't cancelled
+					// while waiting for the promise.
+					if (this.#waitPromise === promise) {
+						this.#waitPromise = undefined;
+						this.#clump();
+					}
+				});
+				return;
+			}
+
+			if (this.#operation && !this.#paused) {
+				this.#clump(); // The timeout happens at the beginning of the clump now
+			}
+
 		}, this.#idleDuration);
 	}
 

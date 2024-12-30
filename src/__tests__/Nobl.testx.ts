@@ -211,7 +211,7 @@ test('wait', async () => {
 	assert(count > sample3);
 });
 
-test('progress synchronous', async () => {
+test('progress', async () => {
 	// Test data
 	let count = 0;
 	let sample1 = 0;
@@ -256,62 +256,62 @@ test('progress synchronous', async () => {
 	assert(count > sample3);
 });
 
-test('progress asynchronous', async () => {
-	// Test data
-	let count = 0;
-	let sample1 = 0;
-	let sample2 = 0;
-	let sample3 = 0;
-
-	// Similar to the sleep test, except that here we're "sleeping"
-	// inside the progress function.
-	const start = Date.now();
-	const startProgress = start + frame(1);
-	setTimeout(() => {
-		sample1 = count;
-	}, frame(2));
-	setTimeout(() => {
-		sample2 = count;
-	}, frame(3));
-	const endProgress = start + frame(4);
-	setTimeout(() => {
-		sample3 = count;
-	}, frame(5));
-	const endTime = Date.now() + frame(6);
-
-	const progressDuration = endProgress - startProgress;
-	let slept = false;
-	const nobl = new Nobl();
-	nobl.duration = duration;
-	nobl.addListener(
-		'progress',
-		() =>
-			new Promise<void>(resolve => {
-				if (!slept && Date.now() >= startProgress) {
-					slept = true;
-					setTimeout(resolve, progressDuration);
-				} else {
-					resolve();
-				}
-			})
-	);
-	const promise = nobl.run(function* () {
-		while (Date.now() < endTime) {
-			count++;
-			yield;
-		}
-	});
-
-	// Wait for the loop to finish.
-	await promise;
-
-	// Each sample should be greater than the one before it,
-	// and the end count should be greater than the last sample.
-	assert(sample1 > 0);
-	assert(sample2 === sample1);
-	assert(sample3 > sample2);
-	assert(count > sample3);
-});
+// test('progress asynchronous', async () => {
+// 	// Test data
+// 	let count = 0;
+// 	let sample1 = 0;
+// 	let sample2 = 0;
+// 	let sample3 = 0;
+// 
+// 	// Similar to the sleep test, except that here we're "sleeping"
+// 	// inside the progress function.
+// 	const start = Date.now();
+// 	const startProgress = start + frame(1);
+// 	setTimeout(() => {
+// 		sample1 = count;
+// 	}, frame(2));
+// 	setTimeout(() => {
+// 		sample2 = count;
+// 	}, frame(3));
+// 	const endProgress = start + frame(4);
+// 	setTimeout(() => {
+// 		sample3 = count;
+// 	}, frame(5));
+// 	const endTime = Date.now() + frame(6);
+// 
+// 	const progressDuration = endProgress - startProgress;
+// 	let slept = false;
+// 	const nobl = new Nobl();
+// 	nobl.duration = duration;
+// 	nobl.addListener(
+// 		'progress',
+// 		() =>
+// 			new Promise<void>(resolve => {
+// 				if (!slept && Date.now() >= startProgress) {
+// 					slept = true;
+// 					setTimeout(resolve, progressDuration);
+// 				} else {
+// 					resolve();
+// 				}
+// 			})
+// 	);
+// 	const promise = nobl.run(function* () {
+// 		while (Date.now() < endTime) {
+// 			count++;
+// 			yield;
+// 		}
+// 	});
+// 
+// 	// Wait for the loop to finish.
+// 	await promise;
+// 
+// 	// Each sample should be greater than the one before it,
+// 	// and the end count should be greater than the last sample.
+// 	assert(sample1 > 0);
+// 	assert(sample2 === sample1);
+// 	assert(sample3 > sample2);
+// 	assert(count > sample3);
+// });
 
 test('pause, next, resume', async () => {
 	// Test data
@@ -374,7 +374,7 @@ test('cancel', async () => {
 	let sample3 = 0;
 
 	let after = false;
-	let nobl: Nobl;
+	const nobl = new Nobl();
 
 	const now = Date.now();
 
@@ -399,7 +399,6 @@ test('cancel', async () => {
 
 	let cancelled = false;
 	try {
-		nobl = new Nobl();
 		nobl.duration = duration;
 		await nobl.run(function* () {
 			while (Date.now() < endTime) {
@@ -427,7 +426,7 @@ test('cancel', async () => {
 	assert(count === sample3);
 });
 
-test('progress with pause and next', async () => {
+test('progress with pause and next', () => {
 	let count = 0;
 	let i = 0;
 	const progress = () => {
@@ -437,7 +436,7 @@ test('progress with pause and next', async () => {
 	nobl.duration = duration;
 	nobl.addListener('progress', progress);
 	nobl.pause();
-	nobl.run(function* () {
+	void nobl.run(function* () {
 		for (i = 10; i < 20; i++) {
 			yield;
 		}
@@ -458,7 +457,7 @@ test('progress with pause and next', async () => {
 test('pass iterator instead of gen fn', async () => {
 	function* preGauss(n: number): number {
 		let sum = 0;
-		for (let i = 1; i <= number; i++) {
+		for (let i = 1; i <= n; i++) {
 			sum += i;
 			yield;
 		}
