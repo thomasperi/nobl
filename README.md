@@ -1,8 +1,9 @@
 # Nobl
+
+Nobl lets you write long-running loops that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser regularly throughout each operation (every 20ms by default).
+
 * <ins>No</ins>n-<ins>bl</ins>ocking loops
 * "knobble" / "noble" / "no bull"
-
-Nobl lets you write long-running operations that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser regularly throughout each operation (every 20ms by default).
 
 ## Usage
 
