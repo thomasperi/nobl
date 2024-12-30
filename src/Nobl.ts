@@ -18,27 +18,18 @@ export type NoblEventType =
 
 
 // Types for a Promise's `resolve` and `reject` function
-type ResolveFunc<T> = (value: T) => void;
-type RejectFunc = (value: any) => void;
-type NoblType<T> = Iterator<void, T>;
+export type ResolveFunc<T> = (value: T) => void;
+export type RejectFunc = (value: any) => void;
 
-class NoblCancelledError extends Error {};
+export type NoblType<T> = Iterator<void, T>;
 
-class NoblOperation<T> {
+export type NoblOperation<T> = {
 	_iterator: NoblType<T>;
 	_resolve: ResolveFunc<T>;
 	_reject: RejectFunc;
-	
-	constructor(
-		iterator: NoblType<T>,
-		resolve: ResolveFunc<T>,
-		reject: RejectFunc,
-	) {
-		this._iterator = iterator;
-		this._resolve = resolve;
-		this._reject = reject;
-	}
-}
+};
+
+class NoblCancelledError extends Error {};
 
 class Nobl {
 	#duration = 20;
@@ -115,14 +106,14 @@ class Nobl {
 	run<T>(arg: (NoblType<T>) | (() => NoblType<T>)): Promise<T> {
 		this.#onlyIfNotRunning('run');
 		this.#running = true;
-		const iterator: NoblType<T> = (typeof arg === 'function') ? arg() : arg;
-		return new Promise<T>((resolve, reject) => {
+		const _iterator: NoblType<T> = (typeof arg === 'function') ? arg() : arg;
+		return new Promise<T>((_resolve, _reject) => {
 			this.#dispatchEvent('progress');
-			this.#operation = new NoblOperation<T>(
-				iterator,
-				resolve,
-				reject
-			);
+			this.#operation = {
+				_iterator,
+				_resolve,
+				_reject
+			};
 			this.#clump();
 		}).finally(() => {
 			this.#running = false;
@@ -336,4 +327,4 @@ const onlyWhen = (method: string, when: string) => {
 	throw new Error(method + ' can only be called ' + when);
 };
 
-export {Nobl, NoblCancelledError, NoblType};
+export {Nobl, NoblCancelledError};
