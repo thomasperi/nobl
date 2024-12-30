@@ -100,15 +100,16 @@ const Nobl = class {
 		this.#idleDuration = this.#duration - this.#workDuration;
 	}
 
-	run(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
+	run(arg: (Iterator<any>) | (() => Iterator<any>)): Promise<void> {
 		this.#onlyIfNotRunning('run');
 		this.#running = true;
+		let iterator: Iterator<any> = typeof arg === 'function' ? arg() : arg;
 		return new _Promise((resolve, reject) => {
 			const progressPromise = this.#dispatchEvent('progress');
 			this.#operation = {
 				resolve,
 				reject,
-				iterator: generator.call(thisObj),
+				iterator,
 			};
 			progressPromise.then(() => {
 				this.#clump();

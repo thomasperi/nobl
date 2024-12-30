@@ -10,8 +10,8 @@ import assert from 'assert';
 // Timing constants to strike a balance on:
 // - Too big and the tests run too slow
 // - Too small and the tests have false failures because they get out of sync internally
-const duration = 10; // The duration option to send to each Nobl
-const factor = 4; // How many durations to wait between each sampling "frame"
+const duration = 20; // The duration option to send to each Nobl
+const factor = 5; // How many durations to wait between each sampling "frame"
 
 // Calculate how long from the start of the test to wait before performing a given action.
 const frame = (n: number): number => n * duration * factor;
@@ -453,6 +453,43 @@ test('progress with pause and next', async () => {
 	nobl.next();
 	assert.equal(i, 11);
 	assert.equal(count, 3);
+});
+
+test('pass iterator instead of gen fn', async () => {
+	function* preGauss(n: number): number {
+		let sum = 0;
+		for (let i = 1; i <= number; i++) {
+			sum += i;
+			yield;
+		}
+		return sum;
+	}
+	function gauss (n: number) {
+		return n * (n + 1) / 2;
+	}
+	
+	const nobl = new Nobl();
+
+	let number;
+	let result;
+	let expected;
+	
+	number = 10;
+	result = await nobl.run(preGauss(number));
+	expected = gauss(number);
+	assert.equal(result, expected);
+
+	number = 1000;
+	result = await nobl.run(preGauss(number));
+	expected = gauss(number);
+	assert.equal(result, expected);
+
+	number = 1000000;
+	result = await nobl.run(preGauss(number));
+	expected = gauss(number);
+	assert.equal(result, expected);
+	
+	console.log({expected});
 });
 
 // to-do:
