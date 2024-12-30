@@ -1,5 +1,5 @@
 import { test } from 'vitest';
-import { Nobl, NoblCancelledError, NoblType } from '../Nobl';
+import { Nobl, NoblCancelledError, NoblIterator } from '../Nobl';
 import assert from 'assert';
 
 
@@ -455,7 +455,7 @@ test('progress with pause and next', () => {
 });
 
 test('pass iterator instead of gen fn', async () => {
-	function* preGauss(n: number): NoblType<number> {
+	function* preGauss(n: number): NoblIterator<number> {
 		let sum = 0;
 		for (let i = 1; i <= n; i++) {
 			sum += i;

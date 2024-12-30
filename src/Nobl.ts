@@ -21,10 +21,10 @@ export type NoblEventType =
 export type ResolveFunc<T> = (value: T) => void;
 export type RejectFunc = (value: any) => void;
 
-export type NoblType<T> = Iterator<void, T>;
+export type NoblIterator<T> = Iterator<void, T>;
 
 export type NoblOperation<T> = {
-	_iterator: NoblType<T>;
+	_iterator: NoblIterator<T>;
 	_resolve: ResolveFunc<T>;
 	_reject: RejectFunc;
 };
@@ -103,10 +103,10 @@ class Nobl {
 	// 	}
 	// }
 
-	run<T>(arg: (NoblType<T>) | (() => NoblType<T>)): Promise<T> {
+	run<T>(arg: (NoblIterator<T>) | (() => NoblIterator<T>)): Promise<T> {
 		this.#onlyIfNotRunning('run');
 		this.#running = true;
-		const _iterator: NoblType<T> = (typeof arg === 'function') ? arg() : arg;
+		const _iterator: NoblIterator<T> = (typeof arg === 'function') ? arg() : arg;
 		return new Promise<T>((_resolve, _reject) => {
 			this.#dispatchEvent('progress');
 			this.#operation = {
