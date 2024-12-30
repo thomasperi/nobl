@@ -13,25 +13,25 @@ import { Nobl } from 'nobl';
 let nobl = new Nobl();
 
 await nobl.run(function* () {
-  for (let i = 1; i <= 1e10; i++) {
-    if (i % 1e7 === 0) {
-      console.log(i);
-    }
-    yield; // provide a potential breakpoint after every iteration
+  for (let i = 0; i <= hugeNumber; i++) {
+  	if (someCondition(i)) {
+			smallPieceOfTheOperation(i);
+		}
+    yield; // inside the loop, outside the `if` block
   }
 });
 ```
 
 ## External Functions
 
-The `run` method also accepts the iterator produced by calling a generator function, allowing you to call existing generator functions with arguments.
+The `run` method also accepts the iterator produced by calling a generator function, allowing you to concisely run existing generator functions that take arguments.
 
 ```javascript
-function* longOperation(a, b) {
+function* hugeOperation(a, b) {
   // ...
 }
 
-await nobl.run(longOperation(foo, bar));
+await nobl.run(hugeOperation(foo, bar));
 ```
 
 ## Caveat
