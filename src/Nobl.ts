@@ -25,18 +25,18 @@ type NoblType<T> = Iterator<void, T>;
 class NoblCancelledError extends Error {};
 
 class NoblOperation<T> {
-	iterator: NoblType<T>;
-	resolve: ResolveFunc<T>;
-	reject: RejectFunc;
+	_iterator: NoblType<T>;
+	_resolve: ResolveFunc<T>;
+	_reject: RejectFunc;
 	
 	constructor(
 		iterator: NoblType<T>,
 		resolve: ResolveFunc<T>,
 		reject: RejectFunc,
 	) {
-		this.iterator = iterator;
-		this.resolve = resolve;
-		this.reject = reject;
+		this._iterator = iterator;
+		this._resolve = resolve;
+		this._reject = reject;
 	}
 }
 
@@ -136,7 +136,7 @@ class Nobl {
 		if (operation) {
 			this.#dispatchEvent('cancel');
 			// Canceling has to reject, because it prevents the function from returning.
-			operation.reject(new NoblCancelledError('operation cancelled'));
+			operation._reject(new NoblCancelledError('operation cancelled'));
 		}
 	}
 
@@ -247,20 +247,20 @@ class Nobl {
 		if (this.#operation) {
 			try {
 				this.#inside = true;
-				const item = this.#operation.iterator.next();
+				const item = this.#operation._iterator.next();
 				if (item.done) {
-					const {resolve} = this.#operation;
+					const {_resolve} = this.#operation;
 					this.#operation = undefined;
-					resolve(item.value);
+					_resolve(item.value);
 				}
 			} catch (e) {
 				if (!this.#operation) {
 					throw e;
 				}
-				const {reject} = this.#operation;
+				const {_reject} = this.#operation;
 				// 			this.#operation = undefined;
 				this.#reset();
-				reject(e);
+				_reject(e);
 			} finally {
 				this.#inside = false;
 			}
