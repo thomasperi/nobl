@@ -26,7 +26,7 @@ test('default options, one sample', async () => {
 
 	assert.equal(nobl.running, false);
 
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		const now = Date.now();
 		setTimeout(() => {
 			sample1 = count;
@@ -67,7 +67,7 @@ test('more samples, shorter duration', async () => {
 	const nobl = new Nobl();
 	nobl.duration = duration;
 
-	await nobl.start(function* () {
+	await nobl.run(function* () {
 		const now = Date.now();
 		setTimeout(() => {
 			sample1 = count;
@@ -104,7 +104,7 @@ test('sleep', async () => {
 	// Start a loop that lasts 400 ms.
 	const nobl = new Nobl();
 	nobl.duration = duration;
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		const now = Date.now();
 		assert.equal(nobl.sleeping, false);
 		assert.equal(nobl.waiting, false);
@@ -162,7 +162,7 @@ test('wait', async () => {
 
 	const nobl = new Nobl();
 	nobl.duration = duration;
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		const now = Date.now();
 		assert.equal(nobl.sleeping, false);
 		assert.equal(nobl.waiting, false);
@@ -238,7 +238,7 @@ test('progress synchronous', async () => {
 			sample3 = count;
 		}
 	});
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		while (Date.now() < endTime) {
 			count++;
 			yield;
@@ -295,7 +295,7 @@ test('progress asynchronous', async () => {
 				}
 			})
 	);
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		while (Date.now() < endTime) {
 			count++;
 			yield;
@@ -346,7 +346,7 @@ test('pause, next, resume', async () => {
 
 	const nobl = new Nobl();
 	nobl.duration = duration;
-	const promise = nobl.start(function* () {
+	const promise = nobl.run(function* () {
 		while (Date.now() < endTime) {
 			count++;
 			yield;
@@ -401,7 +401,7 @@ test('cancel', async () => {
 	try {
 		nobl = new Nobl();
 		nobl.duration = duration;
-		await nobl.start(function* () {
+		await nobl.run(function* () {
 			while (Date.now() < endTime) {
 				count++;
 				yield;
@@ -437,7 +437,7 @@ test('progress with pause and next', async () => {
 	nobl.duration = duration;
 	nobl.addListener('progress', progress);
 	nobl.pause();
-	nobl.start(function* () {
+	nobl.run(function* () {
 		for (i = 10; i < 20; i++) {
 			yield;
 		}

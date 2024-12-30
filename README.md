@@ -4,12 +4,12 @@
 
 Nobl lets you write long-running operations that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser regularly throughout each operation (every 20ms by default).
 
-Pass a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*) to `nobl.start`, and it returns a Promise that resolves when the function returns. Every `yield` statement in the generator function marks where the operation can periodically cede control to the browser.
+Pass a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*) to `nobl.run`, and it returns a Promise that resolves when the function returns. Every `yield` statement in the generator function marks where the operation can periodically cede control to the browser.
 
 ```javascript
 import { Nobl } from 'nobl';
 let nobl = new Nobl();
-await nobl.start(function* () {
+await nobl.run(function* () {
   for (let i = 1; i <= 1e10; i++) {
     if (i % 1e7 === 0) {
       console.log(i);

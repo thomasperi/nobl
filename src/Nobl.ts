@@ -100,8 +100,8 @@ const Nobl = class {
 		this.#idleDuration = this.#duration - this.#workDuration;
 	}
 
-	start(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
-		this.#onlyIfNotRunning('start');
+	run(generator: () => Iterator<any>, thisObj?: any): Promise<void> {
+		this.#onlyIfNotRunning('run');
 		this.#running = true;
 		return new _Promise((resolve, reject) => {
 			const progressPromise = this.#dispatchEvent('progress');
