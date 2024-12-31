@@ -8,9 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
-- Typescript type for iterator return type
+- Typescript NoblIterator return type
+- nom `prepack` script
 
 
 ## [1.0.0-alpha.6] - 2024-12-29

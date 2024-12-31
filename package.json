@@ -23,7 +23,8 @@
   "scripts": {
     "build": "node build/pack.js && node build/terser.js",
     "test": "vitest",
-    "watch": "tsc --noEmit --watch"
+    "watch": "tsc --noEmit --watch",
+    "prepack": "vitest run && npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
