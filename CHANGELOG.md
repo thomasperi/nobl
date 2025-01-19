@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Typescript NoblIterator return type
-- nom `prepack` script
+- npm `prepack` script
 
 
 ## [1.0.0-alpha.6] - 2024-12-29
