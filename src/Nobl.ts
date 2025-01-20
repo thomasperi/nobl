@@ -1,7 +1,7 @@
 export type ResolveFunc<T> = (value: T) => void;
 export type RejectFunc = (value: any) => void;
 
-export type NoblIterator<N, T> = Iterator<void | Promise<N>, T>;
+export type NoblIterator<N, T> = Iterator<any | Promise<N>, T>;
 
 export type NoblOperation<T> = {
 	_iterator: NoblIterator<any, T>;
@@ -54,11 +54,14 @@ class Nobl {
 			do {
 				try {
 					const { done, value } = iterator.next(this.#yieldedResult);
+					this.#yieldedResult = undefined; // clear it immediately after use
 					if (done) {
 						resolve(value);
 					} else if (value instanceof Promise) {
 						this.#yieldedPromise = value;
 						break;
+					} else {
+						this.#yieldedResult = value;
 					}
 				} catch (e) {
 					reject(e);
@@ -66,20 +69,22 @@ class Nobl {
 				}
 			} while (performance.now() < end); // do...while allows at least one iteration per clump regardless of duration
 			
-			const yp = this.#yieldedPromise;
-			if (yp) {
-				yp.then((result: any) => {
-					this.#yieldedResult = result;
-					// Only do the next clump if the run wasn't cancelled
-					// while waiting for the yielded promise to resolve.
-					if (this.#yieldedPromise === yp) {
-						this.#yieldedPromise = undefined;
-						this.#clump(iterator, resolve, reject);
-					}
-				}).catch(reject);
+			if (this.#running) {
+				const yp = this.#yieldedPromise;
+				if (yp) {
+					yp.then((result: any) => {
+						this.#yieldedResult = result;
+						// Only do the next clump if the run wasn't cancelled
+						// while waiting for the yielded promise to resolve.
+						if (this.#yieldedPromise === yp) {
+							this.#yieldedPromise = undefined;
+							this.#clump(iterator, resolve, reject);
+						}
+					}).catch(reject);
 
-			} else {
-				this.#clump(iterator, resolve, reject);
+				} else {
+					this.#clump(iterator, resolve, reject);
+				}
 			}
 		}, 0);
 	}

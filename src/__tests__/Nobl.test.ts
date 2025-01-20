@@ -1,6 +1,5 @@
-import { test } from 'vitest';
-import { Nobl } from '../Nobl';
-import assert from 'assert';
+import { test, expect } from 'vitest';
+import { Nobl, NoblCancelled } from '../Nobl';
 
 
 // These tests work by running a timed loop that increments a counter internally,
@@ -25,15 +24,15 @@ test('basics with one sample', async () => {
 	const nobl = new Nobl();
 
 	// Should not be running initially.
-	assert.equal(nobl.running, false);
+	expect(nobl.running).toBe(false);
 
 	const promise = nobl.run(function* () {
 		const now = Date.now();
 		setTimeout(() => {
 			sample1 = count;
-			assert.equal(nobl.running, true);
-		}, 50);
-		const endTime = now + 100;
+			expect(nobl.running).toBe(true);
+		}, frame(1));
+		const endTime = now + frame(2);
 		while (Date.now() < endTime) {
 			count++;
 			yield;
@@ -42,24 +41,59 @@ test('basics with one sample', async () => {
 	});
 
 	// Should be running after `run` is called.
-	assert.equal(nobl.running, true);
+	expect(nobl.running).toBe(true);
 
 	// `run` should return a promise.
-	assert.equal(promise instanceof Promise, true);
+	expect(promise instanceof Promise);
 	
 	// Wait for the loop to finish.
 	const result = await promise;
 
 	// Should not be running after the promise resolves.
-	assert.equal(nobl.running, false);
+	expect(nobl.running).toBe(false);
 
 	// Each sample should be greater than the one before it,
 	// and the end count should be greater than the last sample.
-	assert(sample1 > 0);
-	assert(count > sample1);
+	expect(sample1).toBeGreaterThan(0);
+	expect(count).toBeGreaterThan(sample1);
 
 	// The promise should resolve to the generator's return value.
-	assert.equal(result, 'foo');
+	expect(result).toBe('foo');
+});
+
+test('pass iterator instead of generator function', async () => {
+	function* preGauss(n: number) {
+		let sum = 0;
+		for (let i = 1; i <= n; i++) {
+			sum += i;
+			yield;
+		}
+		return sum;
+	}
+	function gauss (n: number) {
+		return n * (n + 1) / 2;
+	}
+	
+	const nobl = new Nobl();
+
+	let count: number;
+	let result: number;
+	let expected: number;
+	
+	count = 10;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
+	expect(result).toBe(expected);
+
+	count = 1000;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
+	expect(result).toBe(expected);
+
+	count = 1000000;
+	result = await nobl.run(preGauss(count));
+	expected = gauss(count);
+	expect(result).toBe(expected);
 });
 
 test('more samples', async () => {
@@ -92,411 +126,131 @@ test('more samples', async () => {
 
 	// Each sample should be greater than the one before it,
 	// and the end count should be greater than the last sample.
-	assert(sample1 > 0);
-	assert(sample2 > sample1);
-	assert(sample3 > sample2);
-	assert(count > sample3);
+	expect(sample1).toBeGreaterThan(0);
+	expect(sample2).toBeGreaterThan(sample1);
+	expect(sample3).toBeGreaterThan(sample2);
+	expect(count).toBeGreaterThan(sample3);
 });
 
-// test('sleep', async () => {
-// 	// Test data
-// 	let count = 0;
-// 	let sample1 = 0;
-// 	let sample2 = 0;
-// 	let sample3 = 0;
-// 
-// 	// Start a loop that lasts 400 ms.
-// 	const nobl = new Nobl();
-// 	nobl.duration = duration;
-// 	const promise = nobl.run(function* () {
-// 		const now = Date.now();
-// 		assert.equal(nobl.sleeping, false);
-// 		assert.equal(nobl.waiting, false);
-// 
-// 		const sleepStart = now + frame(1); // before the sample1 time below
-// 		setTimeout(() => {
-// 			sample1 = count;
-// 			assert.equal(nobl.sleeping, true);
-// 			assert.equal(nobl.waiting, true);
-// 		}, frame(2));
-// 		setTimeout(() => {
-// 			sample2 = count;
-// 			assert.equal(nobl.sleeping, true);
-// 			assert.equal(nobl.waiting, true);
-// 		}, frame(3));
-// 		const sleepStop = now + frame(4); // after the sample2 time below
-// 		setTimeout(() => {
-// 			sample3 = count;
-// 			assert.equal(nobl.sleeping, false);
-// 			assert.equal(nobl.waiting, false);
-// 		}, frame(5));
-// 		const endTime = now + frame(6);
-// 
-// 		const sleepDuration = sleepStop - sleepStart;
-// 		let slept = false;
-// 		while (Date.now() < endTime) {
-// 			count++;
-// 			if (!slept && Date.now() >= sleepStart) {
-// 				slept = true;
-// 				nobl.sleep(sleepDuration);
-// 			}
-// 			yield;
-// 		}
-// 	});
-// 
-// 	// Wait for the loop to finish.
-// 	await promise;
-// 
-// 	// Each sample should be greater than the one before it,
-// 	// and the end count should be greater than the last sample.
-// 	assert(sample1 > 0);
-// 	assert(sample2 === sample1);
-// 	assert(sample3 > sample2);
-// 	assert(count > sample3);
-// });
-// 
-// test('wait', async () => {
-// 	// Basically a copy of the test for `sleep`, which is implemented via `wait`
-// 
-// 	// Test data
-// 	let count = 0;
-// 	let sample1 = 0;
-// 	let sample2 = 0;
-// 	let sample3 = 0;
-// 
-// 	const nobl = new Nobl();
-// 	nobl.duration = duration;
-// 	const promise = nobl.run(function* () {
-// 		const now = Date.now();
-// 		assert.equal(nobl.sleeping, false);
-// 		assert.equal(nobl.waiting, false);
-// 
-// 		const sleepStart = now + frame(1); // before the sample1 time below
-// 		setTimeout(() => {
-// 			sample1 = count;
-// 			assert.equal(nobl.sleeping, false);
-// 			assert.equal(nobl.waiting, true);
-// 		}, frame(2));
-// 		setTimeout(() => {
-// 			sample2 = count;
-// 			assert.equal(nobl.sleeping, false);
-// 			assert.equal(nobl.waiting, true);
-// 		}, frame(3));
-// 		const sleepStop = now + frame(4); // after the sample2 time below
-// 		setTimeout(() => {
-// 			sample3 = count;
-// 			assert.equal(nobl.sleeping, false);
-// 			assert.equal(nobl.waiting, false);
-// 		}, frame(5));
-// 		const endTime = now + frame(6);
-// 
-// 		const sleepDuration = sleepStop - sleepStart;
-// 		let slept = false;
-// 		while (Date.now() < endTime) {
-// 			count++;
-// 			if (!slept && Date.now() >= sleepStart) {
-// 				slept = true;
-// 				nobl.wait(
-// 					new Promise(resolve => setTimeout(resolve, sleepDuration))
-// 				);
-// 			}
-// 			yield;
-// 		}
-// 	});
-// 
-// 	// Wait for the loop to finish.
-// 	await promise;
-// 
-// 	// Each sample should be greater than the one before it,
-// 	// and the end count should be greater than the last sample.
-// 	assert(sample1 > 0);
-// 	assert(sample2 === sample1);
-// 	assert(sample3 > sample2);
-// 	assert(count > sample3);
-// });
-// 
-// test('progress', async () => {
-// 	// Test data
-// 	let count = 0;
-// 	let sample1 = 0;
-// 	let sample2 = 0;
-// 	let sample3 = 0;
-// 
-// 	const now = Date.now();
-// 	const sample1time = now + frame(1);
-// 	const sample2time = now + frame(2);
-// 	const sample3time = now + frame(3);
-// 	const endTime = now + frame(4);
-// 
-// 	const nobl = new Nobl();
-// 	nobl.duration = duration;
-// 	nobl.addListener('progress', () => {
-// 		const now = Date.now();
-// 		if (sample1 === 0 && now >= sample1time) {
-// 			sample1 = count;
-// 		}
-// 		if (sample2 === 0 && now >= sample2time) {
-// 			sample2 = count;
-// 		}
-// 		if (sample3 === 0 && now >= sample3time) {
-// 			sample3 = count;
-// 		}
-// 	});
-// 	const promise = nobl.run(function* () {
-// 		while (Date.now() < endTime) {
-// 			count++;
-// 			yield;
-// 		}
-// 	});
-// 
-// 	// Wait for the loop to finish.
-// 	await promise;
-// 
-// 	// Each sample should be greater than the one before it,
-// 	// and the end count should be greater than the last sample.
-// 	assert(sample1 > 0);
-// 	assert(sample2 > sample1);
-// 	assert(sample3 > sample2);
-// 	assert(count > sample3);
-// });
-// 
-// // test('progress asynchronous', async () => {
-// // 	// Test data
-// // 	let count = 0;
-// // 	let sample1 = 0;
-// // 	let sample2 = 0;
-// // 	let sample3 = 0;
-// // 
-// // 	// Similar to the sleep test, except that here we're "sleeping"
-// // 	// inside the progress function.
-// // 	const start = Date.now();
-// // 	const startProgress = start + frame(1);
-// // 	setTimeout(() => {
-// // 		sample1 = count;
-// // 	}, frame(2));
-// // 	setTimeout(() => {
-// // 		sample2 = count;
-// // 	}, frame(3));
-// // 	const endProgress = start + frame(4);
-// // 	setTimeout(() => {
-// // 		sample3 = count;
-// // 	}, frame(5));
-// // 	const endTime = Date.now() + frame(6);
-// // 
-// // 	const progressDuration = endProgress - startProgress;
-// // 	let slept = false;
-// // 	const nobl = new Nobl();
-// // 	nobl.duration = duration;
-// // 	nobl.addListener(
-// // 		'progress',
-// // 		() =>
-// // 			new Promise<void>(resolve => {
-// // 				if (!slept && Date.now() >= startProgress) {
-// // 					slept = true;
-// // 					setTimeout(resolve, progressDuration);
-// // 				} else {
-// // 					resolve();
-// // 				}
-// // 			})
-// // 	);
-// // 	const promise = nobl.run(function* () {
-// // 		while (Date.now() < endTime) {
-// // 			count++;
-// // 			yield;
-// // 		}
-// // 	});
-// // 
-// // 	// Wait for the loop to finish.
-// // 	await promise;
-// // 
-// // 	// Each sample should be greater than the one before it,
-// // 	// and the end count should be greater than the last sample.
-// // 	assert(sample1 > 0);
-// // 	assert(sample2 === sample1);
-// // 	assert(sample3 > sample2);
-// // 	assert(count > sample3);
-// // });
-// 
-// test('pause, next, resume', async () => {
-// 	// Test data
-// 	let count = 0;
-// 	let sample1 = 0;
-// 	let sample2 = 0;
-// 	let sample3 = 0;
-// 
-// 	setTimeout(() => {
-// 		nobl.pause();
-// 	}, frame(1));
-// 	setTimeout(() => {
-// 		sample1 = count;
-// 		assert.equal(nobl.paused, true);
-// 	}, frame(2));
-// 	setTimeout(() => {
-// 		nobl.next();
-// 		assert.equal(nobl.paused, true);
-// 	}, frame(3));
-// 	setTimeout(() => {
-// 		sample2 = count;
-// 		assert.equal(nobl.paused, true);
-// 	}, frame(4));
-// 	setTimeout(() => {
-// 		nobl.resume();
-// 	}, frame(5));
-// 	setTimeout(() => {
-// 		sample3 = count;
-// 		assert.equal(nobl.paused, false);
-// 	}, frame(6));
-// 	const endTime = Date.now() + frame(7);
-// 
-// 	const nobl = new Nobl();
-// 	nobl.duration = duration;
-// 	const promise = nobl.run(function* () {
-// 		while (Date.now() < endTime) {
-// 			count++;
-// 			yield;
-// 		}
-// 	});
-// 
-// 	assert.equal(nobl.paused, false);
-// 
-// 	// Wait for the loop to finish.
-// 	await promise;
-// 
-// 	// Each sample should be greater than the one before it,
-// 	// and the end count should be greater than the last sample.
-// 	assert(sample1 > 0);
-// 	assert(sample2 === sample1 + 1);
-// 	assert(sample3 > sample2);
-// 	assert(count > sample3);
-// });
-// 
-// test('cancel', async () => {
-// 	// Test data
-// 	let count = 0;
-// 	let sample1 = 0;
-// 	let sample2 = 0;
-// 	let sample3 = 0;
-// 
-// 	let after = false;
-// 	const nobl = new Nobl();
-// 
-// 	const now = Date.now();
-// 
-// 	setTimeout(() => {
-// 		sample1 = count;
-// 	}, frame(1));
-// 	setTimeout(() => {
-// 		sample2 = count;
-// 		if (nobl) {
-// 			nobl.cancel();
-// 		}
-// 	}, frame(2));
-// 	setTimeout(() => {
-// 		sample3 = count;
-// 	}, frame(3));
-// 
-// 	const endTime = now + frame(4);
-// 
-// 	const timeoutPromise = new Promise<void>(resolve => {
-// 		setTimeout(resolve, frame(5));
-// 	});
-// 
-// 	let cancelled = false;
-// 	try {
-// 		nobl.duration = duration;
-// 		await nobl.run(function* () {
-// 			while (Date.now() < endTime) {
-// 				count++;
-// 				yield;
-// 			}
-// 		});
-// 		after = true;
-// 	} catch (e) {
-// 		if (e instanceof NoblCancelled) {
-// 			cancelled = true;
-// 		} else {
-// 			throw e;
-// 		}
-// 	}
-// 
-// 	assert(cancelled);
-// 	assert(!after);
-// 
-// 	await timeoutPromise; // already in progress from above
-// 
-// 	assert(sample1 > 0);
-// 	assert(sample2 > sample1);
-// 	assert(sample3 === sample2);
-// 	assert(count === sample3);
-// });
-// 
-// test('progress with pause and next', () => {
-// 	let count = 0;
-// 	let i = 0;
-// 	const progress = () => {
-// 		count++;
-// 	};
-// 	const nobl = new Nobl();
-// 	nobl.duration = duration;
-// 	nobl.addListener('progress', progress);
-// 	nobl.pause();
-// 	void nobl.run(function* () {
-// 		for (i = 10; i < 20; i++) {
-// 			yield;
-// 		}
-// 	});
-// 
-// 	assert.equal(i, 0);
-// 	assert.equal(count, 1); // The first `progress` runs on `do` even though paused.
-// 
-// 	nobl.next();
-// 	assert.equal(i, 10);
-// 	assert.equal(count, 2);
-// 
-// 	nobl.next();
-// 	assert.equal(i, 11);
-// 	assert.equal(count, 3);
-// });
-// 
-// test('pass iterator instead of gen fn', async () => {
-// 	function* preGauss(n: number) {
-// 		let sum = 0;
-// 		for (let i = 1; i <= n; i++) {
-// 			sum += i;
-// 			yield;
-// 		}
-// 		return sum;
-// 	}
-// 	function gauss (n: number) {
-// 		return n * (n + 1) / 2;
-// 	}
-// 	
-// 	const nobl = new Nobl();
-// 
-// 	let count: number;
-// 	let result: number;
-// 	let expected: number;
-// 	
-// 	count = 10;
-// 	result = await nobl.run(preGauss(count));
-// 	expected = gauss(count);
-// 	assert.equal(result, expected);
-// 
-// 	count = 1000;
-// 	result = await nobl.run(preGauss(count));
-// 	expected = gauss(count);
-// 	assert.equal(result, expected);
-// 
-// 	count = 1000000;
-// 	result = await nobl.run(preGauss(count));
-// 	expected = gauss(count);
-// 	assert.equal(result, expected);
-// });
-// 
-// // to-do:
-// 
-// // test violating the `onlyIf...` methods
-// 
-// // test a loop shorter than the duration setting
-// 
-// // test next with wait
+test('sleep', async () => {
+	let sample1 = 0;
+	let sample2 = 0;
+	let sample3 = 0;
+	
+	const nobl = new Nobl();
+	await nobl.run(function* () {
+		sample1 = Date.now();
+		yield nobl.sleep(frame(1));
+		sample2 = Date.now();
+	});
+	sample3 = Date.now();
+	
+	expect(sample1).toBeGreaterThan(0);
+	expect(sample2).toBeGreaterThan(sample1 + frame(1));
+	expect(sample3).toBeGreaterThanOrEqual(sample2);
+});
+
+test('yield promise', async () => {
+	// Test data
+	let sample1 = 0;
+	let sample2 = 0;
+	let sample3 = 0;
+	let sample4 = 0;
+
+	setTimeout(() => {
+		sample1 = Date.now();
+	}, frame(1));
+	setTimeout(() => {
+		sample3 = Date.now();
+	}, frame(3));
+
+	const nobl = new Nobl();
+	await nobl.run(function* () {
+		const now = Date.now();
+		const endTime = now + frame(4);
+		const foo = yield new Promise(resolve => {
+			setTimeout(() => {
+				resolve('foo');
+				sample2 = Date.now();
+			}, frame(2));
+		});
+		expect(foo).toBe('foo');
+		while (Date.now() < endTime) {
+			yield;
+		}
+		sample4 = Date.now();
+	});
+	
+	expect(sample1).toBeGreaterThan(0);
+	expect(sample2).toBeGreaterThan(sample1);
+	expect(sample3).toBeGreaterThan(sample2);
+	expect(sample4).toBeGreaterThan(sample3);
+});
+
+test('yield non-promise', async () => {
+	const nobl = new Nobl();
+	await nobl.run(function* () {
+		const foo = yield new Promise(resolve => {
+			setTimeout(() => {
+				resolve('foo');
+			}, frame(1));
+		});
+		expect(foo).toBe('foo');
+		
+		let bar = yield 'bar';
+		expect(bar).toBe('bar');
+
+		let nuttin = yield;
+		expect(nuttin).toBe(undefined);
+
+		const zote = yield new Promise(resolve => {
+			setTimeout(() => {
+				resolve('zote');
+			}, frame(1));
+		});
+		expect(zote).toBe('zote');
+	});
+});
+
+test('cancel', async () => {
+	// Test data
+	let count = 0;
+	let sample1 = 0;
+	let sample2 = 0;
+	let sample3 = 0;
+	
+	let cancelled = false;
+
+	const nobl = new Nobl();
+	try {
+	
+		setTimeout(() => {
+			sample1 = count;
+		}, frame(1));
+		setTimeout(() => {
+			sample2 = count;
+			nobl.cancel();
+		}, frame(2));
+		setTimeout(() => {
+			sample3 = count;
+		}, frame(3));
+		
+		await nobl.run(function* () {
+			const now = Date.now();
+			const endTime = now + frame(4);
+			while (Date.now() < endTime) {
+				count++;
+				yield;
+			}
+		});
+	
+	} catch (e) {
+		cancelled = (e instanceof NoblCancelled);
+	}
+	
+	expect(cancelled).toBe(true);
+	expect(sample1).toBeGreaterThan(0);
+	expect(sample2).toBeGreaterThan(sample1);
+	expect(sample2).toBe(count);
+	expect(sample3).toBe(0);
+});
