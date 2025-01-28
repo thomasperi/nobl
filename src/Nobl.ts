@@ -1,94 +1,98 @@
 export type ResolveFunc<T> = (value: T) => void;
 export type RejectFunc = (value: any) => void;
 
-type NoblIterator<N, T> = Iterator<any | Promise<N>, T>;
+type NoblIterator<T> = Iterator<any, T>;
 
-class NoblCancelled extends Error {};
-
-class Nobl {
-	#duration = 20;
-	
-	#running = false;
-	#reject?: RejectFunc;
-	#yieldedPromise?: Promise<any>;
-	#yieldedResult?: any;
-
-	#finished() {
-		this.#running = false;
-		this.#reject = undefined;
-		this.#yieldedPromise = undefined;
-		this.#yieldedResult = undefined;
+class NoblYielded {
+	result: any;
+	error: any;
+	constructor(result: any, error: any) {
+		this.result = result;
+		this.error = error;
 	}
-	
-	get running(): boolean {
-		return this.#running;
-	}
+};
 
-	run<T>(arg: (NoblIterator<any, T>) | (() => NoblIterator<any, T>)): Promise<T> {
-		if (this.#running) {
-			throw new Error('This Nobl instance is already running');
-		}
-		this.#running = true;
-		const iterator = (typeof arg === 'function') ? arg() : arg;
-		return new Promise<T>((resolve, reject) => {
-			this.#reject = reject;
-			this.#clump(iterator, resolve, reject);
-		}).then((result: T)=> {
-			this.#finished();
-			return result;
-		}).catch(e => {
-			this.#finished();
-			throw e;
-		});
-	}
+type NoblOptions = {
+	signal?: AbortSignal;
+};
+
+class NoblAborted extends Error {};
+
+const CLUMP_DURATION = 20;
+
+const nobl = <T>(arg: (NoblIterator<T>) | (() => NoblIterator<T>), options: NoblOptions = {}): Promise<T> => {
+	let resolve!: ResolveFunc<T>;
+	let reject!: RejectFunc;
+	let yielded: any;
+	let finished = false;
+	let gotPromise = false;
+	let end = 0;
 	
-	#clump<T>(iterator: NoblIterator<any, T>, resolve: ResolveFunc<T>, reject: RejectFunc) {
+	const { signal } = options;
+	const iterator = (typeof arg === 'function') ? arg() : arg;
+	
+	const clump = () => {
 		setTimeout(() => {
-			const end = performance.now() + this.#duration;
+			end = Date.now() + CLUMP_DURATION;
+			gotPromise = false;
 			do {
 				try {
-					const yr = this.#yieldedResult;
-					this.#yieldedResult = undefined;
-					const { done, value } = iterator.next(yr);
+					const { done, value } = iterator.next(yielded);
 					if (done) {
 						resolve(value);
-					} else if (value instanceof Promise) {
-						this.#yieldedPromise = value;
-						break;
 					} else {
-						this.#yieldedResult = value;
+						yielded = value;
+						gotPromise = yielded instanceof Promise;
 					}
 				} catch (e) {
 					reject(e);
-					break;
 				}
-			} while (performance.now() < end); // do...while allows at least one iteration per clump regardless of duration
-			
-			if (this.#running) {
-				const yp = this.#yieldedPromise;
-				if (yp) {
-					yp.then((result: any) => {
-						this.#yieldedResult = result;
-						// Only do the next clump if the run wasn't cancelled
-						// while waiting for the yielded promise to resolve.
-						if (this.#yieldedPromise === yp) {
-							this.#yieldedPromise = undefined;
-							this.#clump(iterator, resolve, reject);
-						}
-					}).catch(reject);
-
-				} else {
-					this.#clump(iterator, resolve, reject);
-				}
+			} while (!gotPromise && !finished && Date.now() < end);
+	
+			if (gotPromise) {
+				yielded.then((result: any) => {
+					yielded = new NoblYielded(result, null);
+					clump();
+				}).catch((error: any) => {
+					yielded = new NoblYielded(null, error);
+					clump();
+				});
+			} else {
+				clump();
 			}
 		}, 0);
+	};
+	
+	const abort = () => {
+		reject(new NoblAborted('operation cancelled'));
+	};
+	
+	if (signal) {
+		signal.addEventListener('abort', abort, { once: true });
 	}
 	
-	cancel() {
-		if (this.#reject) {
-			this.#reject(new NoblCancelled('operation cancelled'));
+	return new Promise<T>((_resolve, _reject) => {
+		resolve = _resolve;
+		reject = _reject;
+		clump();
+	}).finally(() => {
+		finished = true;
+		if (signal) {
+			signal.removeEventListener('abort', abort);
 		}
-	}
-}
+	});
+};
 
-export {Nobl, NoblCancelled};
+const wait = (yielded: any): any => {
+	if (yielded instanceof NoblYielded) {
+		const {result, error} = yielded;
+		if (error) {
+			throw error;
+		}
+		return result;
+	} else {
+		return yielded;
+	}
+};
+
+export { nobl, wait, NoblAborted };

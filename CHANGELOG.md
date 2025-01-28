@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Typescript NoblIterator return type
 - npm `prepack` script
+- Promises made yieldable
+
+### Changed
+
+- `nobl` function instead of `Nobl` class
+
+### Removed
+
+- Unnecessary methods
 
 
 ## [1.0.0-alpha.6] - 2024-12-29

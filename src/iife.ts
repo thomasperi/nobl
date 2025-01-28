@@ -1,4 +1,4 @@
-import { Nobl, NoblCancelled } from './Nobl';
+import { nobl, wait, NoblAborted } from './Nobl';
 
 // Export all to the global window object
-Object.assign(window, { Nobl, NoblCancelled });
+Object.assign(window, { nobl, wait, NoblAborted });

@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { Nobl, NoblCancelled } from '../Nobl';
+import { NoblAborted, nobl, wait } from '../Nobl';
 
 
 // These tests work by running a timed loop that increments a counter internally,
@@ -21,16 +21,10 @@ test('basics with one sample', async () => {
 	let count = 0;
 	let sample1 = 0;
 
-	const nobl = new Nobl();
-
-	// Should not be running initially.
-	expect(nobl.running).toBe(false);
-
-	const promise = nobl.run(function* () {
+	const promise = nobl(function* () {
 		const now = Date.now();
 		setTimeout(() => {
 			sample1 = count;
-			expect(nobl.running).toBe(true);
 		}, frame(1));
 		const endTime = now + frame(2);
 		while (Date.now() < endTime) {
@@ -40,17 +34,11 @@ test('basics with one sample', async () => {
 		return 'foo';
 	});
 
-	// Should be running after `run` is called.
-	expect(nobl.running).toBe(true);
-
 	// `run` should return a promise.
 	expect(promise instanceof Promise);
 	
 	// Wait for the loop to finish.
 	const result = await promise;
-
-	// Should not be running after the promise resolves.
-	expect(nobl.running).toBe(false);
 
 	// Each sample should be greater than the one before it,
 	// and the end count should be greater than the last sample.
@@ -74,24 +62,22 @@ test('pass iterator instead of generator function', async () => {
 		return n * (n + 1) / 2;
 	}
 	
-	const nobl = new Nobl();
-
 	let count: number;
 	let result: number;
 	let expected: number;
 	
 	count = 10;
-	result = await nobl.run(preGauss(count));
+	result = await nobl(preGauss(count));
 	expected = gauss(count);
 	expect(result).toBe(expected);
 
 	count = 1000;
-	result = await nobl.run(preGauss(count));
+	result = await nobl(preGauss(count));
 	expected = gauss(count);
 	expect(result).toBe(expected);
 
 	count = 1000000;
-	result = await nobl.run(preGauss(count));
+	result = await nobl(preGauss(count));
 	expected = gauss(count);
 	expect(result).toBe(expected);
 });
@@ -103,9 +89,7 @@ test('more samples', async () => {
 	let sample2 = 0;
 	let sample3 = 0;
 
-	const nobl = new Nobl();
-
-	await nobl.run(function* () {
+	await nobl(function* () {
 		const now = Date.now();
 		setTimeout(() => {
 			sample1 = count;
@@ -117,6 +101,8 @@ test('more samples', async () => {
 			sample3 = count;
 		}, frame(3));
 		const endTime = now + frame(4);
+		
+		console.log({now, endTime});
 
 		while (Date.now() < endTime) {
 			count++;
@@ -130,6 +116,30 @@ test('more samples', async () => {
 	expect(sample2).toBeGreaterThan(sample1);
 	expect(sample3).toBeGreaterThan(sample2);
 	expect(count).toBeGreaterThan(sample3);
+});
+
+test('yield non-promise', async () => {
+	await nobl(function* () {
+		const foo = wait(yield new Promise(resolve => {
+			setTimeout(() => {
+				resolve('foo');
+			}, frame(1));
+		}));
+		expect(foo).toBe('foo');
+	
+		let bar = yield 'bar';
+		expect(bar).toBe('bar');
+
+		let nuttin = yield;
+		expect(nuttin).toBe(undefined);
+
+		const zote = wait(yield new Promise(resolve => {
+			setTimeout(() => {
+				resolve('zote');
+			}, frame(1));
+		}));
+		expect(zote).toBe('zote');
+	});
 });
 
 test('yield promise', async () => {
@@ -146,16 +156,15 @@ test('yield promise', async () => {
 		sample3 = Date.now();
 	}, frame(3));
 
-	const nobl = new Nobl();
-	await nobl.run(function* () {
+	await nobl(function* () {
 		const now = Date.now();
 		const endTime = now + frame(4);
-		const foo = yield new Promise(resolve => {
+		const foo = wait(yield new Promise(resolve => {
 			setTimeout(() => {
 				resolve('foo');
 				sample2 = Date.now();
 			}, frame(2));
-		});
+		}));
 		expect(foo).toBe('foo');
 		while (Date.now() < endTime) {
 			yield;
@@ -169,41 +178,39 @@ test('yield promise', async () => {
 	expect(sample4).toBeGreaterThan(sample3);
 });
 
-test('yield non-promise', async () => {
-	const nobl = new Nobl();
-	await nobl.run(function* () {
-		const foo = yield new Promise(resolve => {
-			setTimeout(() => {
-				resolve('foo');
-			}, frame(1));
+test('yielded promise rejected', async () => {
+	let where = '';
+	try {
+		await nobl(function* () {
+			try {
+				wait(yield new Promise((resolve, reject) => {
+					void resolve;
+					setTimeout(() => {
+						reject('zote');
+					}, 0);
+				}));
+			} catch (e) {
+				where = `inside ${e}`;
+			}
 		});
-		expect(foo).toBe('foo');
-		
-		let bar = yield 'bar';
-		expect(bar).toBe('bar');
-
-		let nuttin = yield;
-		expect(nuttin).toBe(undefined);
-
-		const zote = yield new Promise(resolve => {
-			setTimeout(() => {
-				resolve('zote');
-			}, frame(1));
-		});
-		expect(zote).toBe('zote');
-	});
+	} catch (e) {
+		where = `outside ${e}`;
+	}
+	expect(where).toBe('inside zote');
 });
 
-test('cancel', async () => {
+test('abort', async () => {
 	// Test data
 	let count = 0;
 	let sample1 = 0;
 	let sample2 = 0;
 	let sample3 = 0;
 	
-	let cancelled = false;
+	let aborted = false;
 
-	const nobl = new Nobl();
+	let ac = new AbortController();
+	let { signal } = ac;
+
 	try {
 	
 		setTimeout(() => {
@@ -211,26 +218,26 @@ test('cancel', async () => {
 		}, frame(1));
 		setTimeout(() => {
 			sample2 = count;
-			nobl.cancel();
+			ac.abort();
 		}, frame(2));
 		setTimeout(() => {
 			sample3 = count;
 		}, frame(3));
 		
-		await nobl.run(function* () {
+		await nobl(function* () {
 			const now = Date.now();
 			const endTime = now + frame(4);
 			while (Date.now() < endTime) {
 				count++;
 				yield;
 			}
-		});
+		}, { signal });
 	
 	} catch (e) {
-		cancelled = (e instanceof NoblCancelled);
+		aborted = (e instanceof NoblAborted);
 	}
 	
-	expect(cancelled).toBe(true);
+	expect(aborted).toBe(true);
 	expect(sample1).toBeGreaterThan(0);
 	expect(sample2).toBeGreaterThan(sample1);
 	expect(sample2).toBe(count);
