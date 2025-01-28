@@ -132,24 +132,6 @@ test('more samples', async () => {
 	expect(count).toBeGreaterThan(sample3);
 });
 
-test('sleep', async () => {
-	let sample1 = 0;
-	let sample2 = 0;
-	let sample3 = 0;
-	
-	const nobl = new Nobl();
-	await nobl.run(function* () {
-		sample1 = Date.now();
-		yield nobl.sleep(frame(1));
-		sample2 = Date.now();
-	});
-	sample3 = Date.now();
-	
-	expect(sample1).toBeGreaterThan(0);
-	expect(sample2).toBeGreaterThan(sample1 + frame(1));
-	expect(sample3).toBeGreaterThanOrEqual(sample2);
-});
-
 test('yield promise', async () => {
 	// Test data
 	let sample1 = 0;

@@ -1,13 +1,7 @@
 export type ResolveFunc<T> = (value: T) => void;
 export type RejectFunc = (value: any) => void;
 
-export type NoblIterator<N, T> = Iterator<any | Promise<N>, T>;
-
-export type NoblOperation<T> = {
-	_iterator: NoblIterator<any, T>;
-	_resolve: ResolveFunc<T>;
-	_reject: RejectFunc;
-};
+type NoblIterator<N, T> = Iterator<any | Promise<N>, T>;
 
 class NoblCancelled extends Error {};
 
@@ -53,8 +47,9 @@ class Nobl {
 			const end = performance.now() + this.#duration;
 			do {
 				try {
-					const { done, value } = iterator.next(this.#yieldedResult);
-					this.#yieldedResult = undefined; // clear it immediately after use
+					const yr = this.#yieldedResult;
+					this.#yieldedResult = undefined;
+					const { done, value } = iterator.next(yr);
 					if (done) {
 						resolve(value);
 					} else if (value instanceof Promise) {
@@ -93,18 +88,6 @@ class Nobl {
 		if (this.#reject) {
 			this.#reject(new NoblCancelled('operation cancelled'));
 		}
-	}
-
-	interrupt(): Promise<void> {
-		return this.sleep(0);
-	}
-
-	sleep(delay: number): Promise<void> {
-		return new Promise<void>(resolve =>
-			setTimeout(() => {
-				resolve();
-			}, delay)
-		);
 	}
 }
 
