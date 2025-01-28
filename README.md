@@ -42,12 +42,12 @@ Since generator functions can't be `async`, Nobl has a `wait` function to emulat
 import { nobl, wait } from 'nobl';
 
 await nobl(function* () {
-	try {
-		const res = wait(yield fetch('https://example.com/foo.json'));
-		const json = res.ok && wait(yield res.json());
-	} catch (e) {
-		// ...
-	}
+  try {
+    const res = wait(yield fetch('https://example.com/foo.json'));
+    const json = res.ok && wait(yield res.json());
+  } catch (e) {
+    // ...
+  }
 });
 ```
 
@@ -64,20 +64,20 @@ const ac = new AbortController();
 const { signal } = ac;
 
 setTimeout(() => {
-	ac.cancel();
+  ac.cancel();
 }, 1000);
 
 try {
-	await nobl(function* () {
-		for (let i = 0; i <= hugeNumber; i++) {
-			smallStep(i);
-			yield;
-		}
-	}, { signal });
+  await nobl(function* () {
+    for (let i = 0; i <= hugeNumber; i++) {
+      smallStep(i);
+      yield;
+    }
+  }, { signal });
 } catch (e) {
-	if (e instanceof NoblAborted) {
-		// ...
-	}
+  if (e instanceof NoblAborted) {
+    // ...
+  }
 }
 ```
 
