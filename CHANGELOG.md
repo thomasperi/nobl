@@ -8,11 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [1.0.0-alpha.7] - 2025-01-28
+
 ### Added
 
-- Typescript NoblIterator return type
 - npm `prepack` script
-- Promises made yieldable
 
 ### Changed
 
@@ -85,7 +86,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First publish
 
 
-[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.6...HEAD
+[unreleased]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.7...HEAD
+[1.0.0-alpha.7]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.6...v1.0.0-alpha.7
 [1.0.0-alpha.6]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.5...v1.0.0-alpha.6
 [1.0.0-alpha.5]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.4...v1.0.0-alpha.5
 [1.0.0-alpha.4]: https://github.com/thomasperi/nobl/compare/v1.0.0-alpha.3...v1.0.0-alpha.4
