@@ -1,4 +1,4 @@
-# Nobl
+# nobl
 
 Nobl lets you write long-running loops that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser at regular intervals (every 20ms).
 

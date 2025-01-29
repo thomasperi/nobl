@@ -5,20 +5,20 @@
   "author": "Thomas Peri <hello@thomasperi.net>",
   "repository": "github:thomasperi/nobl",
   "license": "MIT",
-  "main": "dist/Nobl.min.mjs",
-  "module": "dist/Nobl.min.mjs",
-  "types": "dist/Nobl.d.ts",
+  "main": "dist/nobl.min.mjs",
+  "module": "dist/nobl.min.mjs",
+  "types": "dist/nobl.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/Nobl.d.ts",
-      "import": "./dist/Nobl.min.mjs",
-      "default": "./dist/Nobl.min.mjs"
+      "types": "./dist/nobl.d.ts",
+      "import": "./dist/nobl.min.mjs",
+      "default": "./dist/nobl.min.mjs"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist/Nobl.min.mjs",
-    "dist/Nobl.d.ts"
+    "dist/nobl.min.mjs",
+    "dist/nobl.d.ts"
   ],
   "scripts": {
     "build": "node build/pack.js && node build/terser.js",

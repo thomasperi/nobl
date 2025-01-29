@@ -51,7 +51,7 @@ async function typesBuild() {
 
 async function removeArtifacts() {
   const files = await (await readdir(`${rootDir}/dist`))
-    .filter((file) => file.endsWith('.d.ts') && !file.startsWith('Nobl.'))
+    .filter((file) => file.endsWith('.d.ts') && !file.startsWith('nobl.'))
     .map((file) => `${rootDir}/dist/${file}`)
   await execa('rm', files)
 }

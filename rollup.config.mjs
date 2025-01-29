@@ -14,20 +14,20 @@ const tsPlugin = typescript({
 switch (process.env.BUILD) {
 	case 'base': {
 		plugins.push(tsPlugin);
-		input = 'src/Nobl.ts';
-		output.file = 'dist/Nobl.mjs';
+		input = 'src/nobl.ts';
+		output.file = 'dist/nobl.mjs';
 		break;
 	}
 	case 'types': {
 		plugins.push(dts());
-		input = 'dist/Nobl.d.ts';
-		output.file = 'dist/Nobl.d.ts';
+		input = 'dist/nobl.d.ts';
+		output.file = 'dist/nobl.d.ts';
 		break;
 	}
 	case 'iife': {
 		plugins.push(tsPlugin);
 		input = 'src/iife.ts';
-		output.file = 'dist/Nobl.js';
+		output.file = 'dist/nobl.js';
 		output.format = 'iife';
 		break;
 	}

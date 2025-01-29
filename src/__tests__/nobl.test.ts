@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest';
-import { nobl, NoblCancelled } from '../Nobl';
+import { nobl, NoblCancelled } from '../nobl';
 
 
 // These tests work by running a timed loop that increments a counter internally,
@@ -9,7 +9,7 @@ import { nobl, NoblCancelled } from '../Nobl';
 // Timing constants to strike a balance on:
 // - Too big and the tests run too slow
 // - Too small and the tests have false failures because they get out of sync internally
-const duration = 20; // Nobl's internal duration value
+const duration = 20; // nobl's internal duration value
 const factor = 5; // How many durations to wait between each sampling "frame"
 
 // Calculate how long from the start of the test to wait before performing a given action.
