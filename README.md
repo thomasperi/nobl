@@ -59,7 +59,7 @@ try {
 
 ### `progress`
 
-If a `progress` option is a function, it runs once every time control is ceded.
+If the `progress` option is a function, it runs once every time control is ceded.
 
 ```javascript
 import { nobl } from 'nobl';
