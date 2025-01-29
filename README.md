@@ -1,13 +1,13 @@
 # Nobl
 
-Nobl lets you write long-running loops that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser at regular intervals (every 20ms) throughout each operation.
+Nobl lets you write long-running loops that run asynchronously instead of blocking the thread, by automatically ceding control back to the browser at regular intervals (every 20ms).
 
 * <ins>No</ins>n-<ins>bl</ins>ocking loops
 * "knobble" / "noble" / "no bull"
 
 ## Usage
 
-Put `await nobl()` wherever you want the code to potentially cede control to the browser.
+Put `await nobl()` wherever you want the code to *potentially* cede control to the browser. It doesn't *necessarily* cede control every time. Only once every 20ms.
 
 ```javascript
 import { nobl } from 'nobl';
@@ -24,13 +24,11 @@ async function longOperation() {
 
 ## Options
 
-`nobl()` accepts as an optional argument an object with two properties:
+`nobl()` accepts as an optional argument an object with two optional properties:
 
 Option     | Type
 -----------|----------
 `cancel`   | boolean
-`duration` | number
-`sleep`    | number
 `progress` | function
 
 ### `cancel`
@@ -54,40 +52,31 @@ try {
   await longOperation();
 } catch (e) {
   if (e instanceof NoblCancelled) {
-  	// ...
-  }
-}
-```
-
-### `duration`
-
-to-do: test and document `duration`
-
-
-### `sleep`
-
-If the `sleep` option is defined, `nobl` cedes control to the browser for `sleep` milliseconds.
-
-You can specify a `sleep` of zero to force ceding control to the browser even if the thread hasn't been blocked for 20ms yet.
-
-```javascript
-async function longOperation() {
-  for (let i = 1; i <= hugeNumber; i++) {
-  	// do something special every 500 iterations
-  	if (i % 500 === 0) {
-  		updateProgressBarOrSomething();
-  		await nobl({sleep: 0});
-  	} else {
-  		await nobl();
-  	}
+    // ...
   }
 }
 ```
 
 ### `progress`
 
-to-do: document `progress`
+If a `progress` option is a function, it runs once every time control is ceded.
 
+```javascript
+import { nobl } from 'nobl';
+
+function progress() {
+  // Update a progress bar or something
+}
+
+async function longOperation() {
+  for (let i = 0; i < hugeNumber; i++) {
+    if (someCondition(i)) {
+      smallPieceOfTheOperation(i);
+    }
+    await nobl({progress});
+  }
+}
+```
 
 ## Caveat
 Nobl is experimental and hasn't seen much real-world use. You probably shouldn't rely on it for mission-critical applications.

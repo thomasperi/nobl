@@ -13,7 +13,7 @@ const duration = 20; // Nobl's internal duration value
 const factor = 5; // How many durations to wait between each sampling "frame"
 
 // Calculate how long from the start of the test to wait before performing a given action.
-const frame = (n: number): number => n * duration * factor;
+const frame = (n: number, d = 0, f = 0): number => n * (d || duration) * (f || factor);
 
 
 test('basics with one sample', async () => {
@@ -69,47 +69,6 @@ test('more samples', async () => {
 	expect(count).toBeGreaterThan(sample3);
 });
 
-test('sleep', async () => {
-	// Test data
-	let count = 0;
-	let sample1 = 0;
-	let sample2 = 0;
-	let sample3 = 0;
-
-	const now = Date.now();
-
-	const sleepStart = now + frame(1); // before the sample1 time below
-	setTimeout(() => {
-		sample1 = count;
-	}, frame(2));
-	setTimeout(() => {
-		sample2 = count;
-	}, frame(3));
-	const sleepStop = now + frame(4); // after the sample2 time below
-	setTimeout(() => {
-		sample3 = count;
-	}, frame(5));
-	const endTime = now + frame(6);
-
-	const sleep = sleepStop - sleepStart;
-	let slept = false;
-	while (Date.now() < endTime) {
-		count++;
-		if (!slept && Date.now() >= sleepStart) {
-			slept = true;
-			await nobl({sleep});
-		}
-		await nobl();
-	}
-
-	// Each sample should be greater than the one before it,
-	// and the end count should be greater than the last sample.
-	expect(sample1).toBeGreaterThan(0);
-	expect(sample2).toBe(sample1);
-	expect(sample3).toBeGreaterThan(sample2);
-	expect(count).toBeGreaterThan(sample3);
-});
-
 test('cancel', async () => {
 	// Test data
 	let count = 0;
@@ -159,7 +118,7 @@ test('progress', async () => {
 		samples.push(Date.now());
 	};
 	
-	const endTime = Date.now() + frame(10);
+	const endTime = Date.now() + frame(5);
 	while (Date.now() < endTime) {
 		count++;
 		await nobl({progress});
@@ -170,3 +129,4 @@ test('progress', async () => {
 		expect(diff).toBeGreaterThanOrEqual(duration);
 	}
 });
+
