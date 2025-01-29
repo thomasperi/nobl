@@ -36,6 +36,8 @@ Option     | Type
 If the `cancel` option is truthy, a `NoblCancelled` error is thrown.
 
 ```javascript
+import { nobl, NoblCancelled } from 'nobl';
+
 let cancel = false;
 async function longOperation() {
   for (let i = 0; i < hugeNumber; i++) {

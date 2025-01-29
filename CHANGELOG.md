@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Added missing `import` statement in README.
+
 
 ## [1.0.0-alpha.7] - 2025-01-28
 
